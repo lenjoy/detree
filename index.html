@@ -15,13 +15,14 @@ each node has a button to edit the node.
     <style>
         body {
             font-family: Verdana, sans-serif;
+            font-size: 10px;
         }
         .input_number {
             margin-right: 10px;
             width: 40px;
         }
         .tree-container {
-            margin: 20px;
+            margin: 0px;
         }
         .node {
             margin: 5px 0;
@@ -30,9 +31,10 @@ each node has a button to edit the node.
         }
         .toggle {
             cursor: pointer;
-            margin-right: 5px;
+            font-size: 18px;
+            margin-left: -10px;
+            margin-right: 2px;
             user-select: none;
-            width: 20px;
         }
         .children {
             display: none;
@@ -42,7 +44,7 @@ each node has a button to edit the node.
             border-left: 2px solid #ccc;
             content: '';
             height: 100%;
-            left: 1px;
+            left: -8px;
             position: absolute;
             top: -8px;
         }
@@ -52,20 +54,19 @@ each node has a button to edit the node.
             left: 2px;
             position: absolute;
             top: 10px;
-            width: 30px;
+            width: 20px;
         }
         button {
-            font-size: 0.8em;
             margin-left: 5px;
         }
     </style>
 </head>
 <body>
     <div>
-        <label for="numPlayers">num of players (usually 20 to 200):</label>
-        <input type="number" id="numPlayers" class="input_number" min="4" value="16">
-        <label for="yourRank">your rank</label>
-        <input type="number" id="yourRank" class="input_number" min="1" value="1">
+        <label for="numPlayers">#players</label>
+        <input type="number" id="numPlayers" class="input_number" min="4" value="54">
+        <label for="yourRank">rank</label>
+        <input type="number" id="yourRank" class="input_number" min="1" value="30">
         <button onclick="createDETree(document.getElementById('numPlayers').value, document.getElementById('yourRank').value)">Generate direct elimination tree</button>
     </div>
     <p id="errorMessage" style="color: red;"></p>
@@ -96,7 +97,7 @@ each node has a button to edit the node.
             newNode.id = id;
             newNode.className = 'node';
             if (showStep) {
-                labelContent = `${id} (${Math.pow(2, layer)} -> ${Math.pow(2, layer - 1)})`;
+                labelContent = `${id} (${Math.pow(2, layer)} - ${Math.pow(2, layer - 1)})`;
             } else {
                 labelContent = id;
             }
