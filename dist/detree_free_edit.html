@@ -1,0 +1,126 @@
+<!-- write a html file that displays a nested binary tree structure.
+each node is a <div>
+each node has a label, and a button to fold or unfold the children nodes.
+each node has a button to add a child node. 
+each node has a button to delete the node.
+each node has a button to edit the node.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Visualizer with Connecting Lines (free edit version)</title>
+    <style>
+        .tree-container {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .node {
+            position: relative;
+            margin: 5px 0;
+            padding-left: 40px;
+        }
+        .toggle {
+            cursor: pointer;
+            user-select: none;
+            margin-right: 5px;
+        }
+        .children {
+            position: relative;
+            display: none;
+        }
+        .children::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -10px;
+            border-left: 2px solid #ccc;
+            height: 100%;
+        }
+        .node::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 0;
+            border-top: 2px solid #ccc;
+            width: 30px;
+        }
+        button {
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="tree-container" id="tree-container">
+    </div>
+
+    <script>
+        function toggleChildren(node) {
+            const toggle = node.querySelector('.toggle');
+            const children = node.querySelector('.children');
+            if (toggle.textContent === '+') {
+                toggle.textContent = '-';
+                children.style.display = 'block';
+            } else {
+                toggle.textContent = '+';
+                children.style.display = 'none';
+            }
+        }
+
+        function createNode(id) {
+            const newNode = document.createElement('div');
+            newNode.id = id;
+            newNode.className = 'node';
+            newNode.innerHTML = `
+                <span class="toggle">+</span>
+                <span class="label">_ new node _</span>
+                <button onclick="addChild(this.parentNode)">Add</button>
+                <button onclick="editNode(this.parentNode)">Edit</button>
+                <button onclick="removeNode(this.parentNode)">Del</button>
+                <div class="children"></div>
+            `;
+            return newNode;
+        }
+
+        function addChild(node) {
+            const newNode = createNode('');
+            const children = node.querySelector('.children');
+            children.appendChild(newNode);
+            
+            // Ensure parent node is expanded
+            const parentToggle = node.querySelector('.toggle');
+            if (parentToggle.textContent === '+') {
+                toggleChildren(node);
+            }
+        }
+
+        function editNode(node) {
+            const label = node.querySelector('.label');
+            const newLabel = prompt('Enter new label:', label.textContent);
+            if (newLabel !== null && newLabel.trim() !== '') {
+                label.textContent = newLabel.trim();
+            }
+        }
+
+        function removeNode(node) {
+            if (node.id !== 'root') {
+                node.parentNode.removeChild(node);
+            } else {
+                alert('Cannot remove root node');
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('toggle')) {
+                toggleChildren(e.target.closest('.node'));
+            }
+        });
+
+        rootNode = createNode('root');
+        document.getElementById('tree-container').appendChild(rootNode);
+    </script>
+</body>
+</html>
