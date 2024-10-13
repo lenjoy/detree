@@ -1,0 +1,222 @@
+<!-- write a html file that displays a nested binary tree structure.
+each node is a <div>
+each node has a label, and a button to fold or unfold the children nodes.
+each node has a button to add a child node. 
+each node has a button to delete the node.
+each node has a button to edit the node.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Elimination Tree Visualizer</title>
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+        }
+        .input_number {
+            margin-right: 10px;
+            width: 40px;
+        }
+        .tree-container {
+            margin: 20px;
+        }
+        .node {
+            margin: 5px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+        .toggle {
+            cursor: pointer;
+            margin-right: 5px;
+            user-select: none;
+            width: 20px;
+        }
+        .children {
+            display: none;
+            position: relative;
+        }
+        .children::before {
+            border-left: 2px solid #ccc;
+            content: '';
+            height: 100%;
+            left: 1px;
+            position: absolute;
+            top: -8px;
+        }
+        .node::before {
+            border-top: 2px solid #ccc;
+            content: '';
+            left: 2px;
+            position: absolute;
+            top: 10px;
+            width: 30px;
+        }
+        button {
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="numPlayers">num of players (usually 20 to 200):</label>
+        <input type="number" id="numPlayers" class="input_number" min="4" value="16">
+        <label for="yourRank">your rank</label>
+        <input type="number" id="yourRank" class="input_number" min="1" value="1">
+        <button onclick="createDETree(document.getElementById('numPlayers').value, document.getElementById('yourRank').value)">Generate direct elimination tree</button>
+    </div>
+    <p id="errorMessage" style="color: red;"></p>
+
+    <div id="path_to_champion" style="display: none;">
+        <span>path to champion: </span>
+        <pre id="path_to_champion_text"></pre>
+    </div>
+
+    <div class="tree-container" id="tree-container">
+    </div>
+
+    <script>
+        function toggleChildren(node) {
+            const toggle = node.querySelector('.toggle');
+            const children = node.querySelector('.children');
+            if (toggle.textContent === '+') {
+                toggle.textContent = '-';
+                children.style.display = 'block';
+            } else {
+                toggle.textContent = '+';
+                children.style.display = 'none';
+            }
+        }
+
+        function createNode(id, layer, showStep) {
+            const newNode = document.createElement('div');
+            newNode.id = id;
+            newNode.className = 'node';
+            if (showStep) {
+                labelContent = `${id} (${Math.pow(2, layer)} -> ${Math.pow(2, layer - 1)})`;
+            } else {
+                labelContent = id;
+            }
+            newNode.innerHTML = `
+                <span class="toggle">+</span>
+                <span class="label">${labelContent}</span>
+                <div class="children"></div>
+            `;
+            return newNode;
+        }
+
+        function addChildTo(node, childId, currentLayer, showStep) {
+            const newNode = createNode(childId, currentLayer + 1, showStep);
+            const children = node.querySelector('.children');
+            children.appendChild(newNode);
+            
+            // Ensure parent node is expanded
+            const parentToggle = node.querySelector('.toggle');
+            if (parentToggle.textContent === '+') {
+                toggleChildren(node);
+            }
+            return newNode;
+        }
+
+        function editNode(node) {
+            const label = node.querySelector('.label');
+            const newLabel = prompt('Enter new label:', label.textContent);
+            if (newLabel !== null && newLabel.trim() !== '') {
+                label.textContent = newLabel.trim();
+            }
+        }
+
+        function removeNode(node) {
+            if (node.id !== 'root') {
+                node.parentNode.removeChild(node);
+            } else {
+                alert('Cannot remove root node');
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('toggle')) {
+                toggleChildren(e.target.closest('.node'));
+            }
+        });
+
+        function validateRank() {
+            const numPlayers = parseInt(numPlayersInput.value);
+            const yourRank = parseInt(yourRankInput.value);
+
+            if (yourRank > numPlayers) {
+                errorMessage.textContent = "Error: Your rank cannot be greater than the number of players.";
+                yourRankInput.setCustomValidity("Your rank cannot be greater than the number of players.");
+            } else {
+                errorMessage.textContent = "";
+                yourRankInput.setCustomValidity("");
+            }
+        }
+
+        function getMaxLayer(numPlayers) {
+            return Math.ceil(Math.log2(numPlayers));
+        }
+
+        function findPathToChampion(numPlayers, yourRank) {
+            const maxLayer = getMaxLayer(numPlayers);
+            const pathToChampion = [];
+            let currentRank = yourRank;
+            for (let layer = maxLayer; layer > 0; layer--) {
+                const n = Math.pow(2, layer);
+                const opponent = n + 1 - currentRank;
+                if (opponent > numPlayers) {
+                    pathToChampion.push(`in ${n} -> ${n/2}: bye`);
+                } else {
+                    pathToChampion.push(`in ${n} -> ${n/2}: vs ${opponent}`);
+                }
+                if (opponent < currentRank) {
+                    currentRank = opponent;
+                }
+            }
+            return pathToChampion;
+        }
+
+        function createDETree(numPlayers, yourRank) {
+            const maxLayer = getMaxLayer(numPlayers);
+            console.log(`maxLayer: ${maxLayer}`);
+            // init the container
+            const parentNode = document.getElementById('tree-container');
+            parentNode.innerHTML = '';
+            //current node id is 1, and layer is 1
+            const currentLayer = 1;
+            const rootNode = createNode('1', currentLayer);
+            parentNode.appendChild(rootNode);
+
+            let currentNodeList = [rootNode];
+            for (let layer = currentLayer; layer <= maxLayer; layer++) {
+                const newNodeList = [];
+                for (const node of currentNodeList) {
+                const a = node.id;
+                const b = Math.pow(2, layer) + 1 - a;
+                const showStep = layer < maxLayer;
+                newNodeList.push(addChildTo(node, a, layer, showStep));
+                    newNodeList.push(addChildTo(node, b, layer, showStep));
+                }
+                currentNodeList = newNodeList;
+                // console.log(`=== layer ${layer}:`);
+                // console.log(currentNodeList);
+            }
+
+            const pathToChampion = findPathToChampion(numPlayers, yourRank);
+            document.getElementById('path_to_champion').style.display = 'block';
+            document.getElementById('path_to_champion_text').textContent = pathToChampion.join('\n');
+        }
+
+
+        const numPlayersInput = document.getElementById('numPlayers');
+        const yourRankInput = document.getElementById('yourRank');
+        const errorMessage = document.getElementById('errorMessage');
+        numPlayersInput.addEventListener('input', validateRank);
+        yourRankInput.addEventListener('input', validateRank);
+
+    </script>
+</body>
+</html>
